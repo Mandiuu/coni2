@@ -1,17 +1,18 @@
-const words = ["MANDI", "MELI", "FERNI", "MABE", "AHUMI", "CONI", "CARLA", "LONGA", "TITA", "MACA", "FRAN"];
+const words = ["MANDI", "MELI", "FERNI", "MABE", "AHUMI", "CONI", "CARLA", "LONGA", "TITA", "MACA", "FRAN", "GACHE"];
 const gridSize = 10;
 const gridContainer = document.getElementById("grid-container");
-const wordList = document.querySelectorAll("#word-list li");
+const winMessage = document.getElementById("win-message");
 let grid = [];
 let selectedCells = [];
 let isSelecting = false;
+let foundWords = new Set(); // Track found words
 
 // Generate empty grid
 function generateGrid() {
     for (let i = 0; i < gridSize; i++) {
         grid[i] = [];
         for (let j = 0; j < gridSize; j++) {
-            grid[i][j] = { letter: "", usedInWords: [] }; // Track letter and words
+            grid[i][j] = ""; // Track letters only
         }
     }
 }
@@ -33,7 +34,7 @@ function placeWords() {
     });
 }
 
-// Check if word fits
+// Check if word fits without overlapping letters
 function canPlaceWord(word, row, col, direction) {
     if (direction === "horizontal" && col + word.length > gridSize) return false;
     if (direction === "vertical" && row + word.length > gridSize) return false;
@@ -42,8 +43,8 @@ function canPlaceWord(word, row, col, direction) {
         const currentRow = direction === "vertical" ? row + i : row;
         const currentCol = direction === "horizontal" ? col + i : col;
 
-        const cell = grid[currentRow][currentCol];
-        if (cell.letter && cell.letter !== word[i] && !cell.usedInWords.includes(word)) {
+        // Check if the cell is already used
+        if (grid[currentRow][currentCol]) {
             return false;
         }
     }
@@ -56,11 +57,7 @@ function placeWord(word, row, col, direction) {
         const currentRow = direction === "vertical" ? row + i : row;
         const currentCol = direction === "horizontal" ? col + i : col;
 
-        const cell = grid[currentRow][currentCol];
-        cell.letter = word[i];
-        if (!cell.usedInWords.includes(word)) {
-            cell.usedInWords.push(word); // Track word usage
-        }
+        grid[currentRow][currentCol] = word[i];
     }
 }
 
@@ -69,8 +66,8 @@ function fillRandomLetters() {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
-            if (!grid[i][j].letter) {
-                grid[i][j].letter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            if (!grid[i][j]) {
+                grid[i][j] = alphabet[Math.floor(Math.random() * alphabet.length)];
             }
         }
     }
@@ -83,7 +80,7 @@ function renderGrid() {
         row.forEach((cell, colIndex) => {
             const div = document.createElement("div");
             div.classList.add("grid-cell");
-            div.textContent = cell.letter;
+            div.textContent = cell;
             div.dataset.row = rowIndex;
             div.dataset.col = colIndex;
 
@@ -156,7 +153,7 @@ function handleSelectionEnd() {
 // Check if the selected cells form a word
 function checkSelection() {
     const selectedWord = selectedCells
-        .map(({ row, col }) => grid[row][col].letter)
+        .map(({ row, col }) => grid[row][col])
         .join("");
 
     if (words.includes(selectedWord)) {
@@ -165,17 +162,13 @@ function checkSelection() {
             cell.classList.add("found");
         });
 
-        // Mark the word as found in the word list
-        wordList.forEach((li) => {
-            if (li.textContent.toUpperCase() === selectedWord) {
-                li.classList.add("found");
-            }
-        });
+        // Add to found words
+        foundWords.add(selectedWord);
 
         // Check if all words are found
-        const allWordsFound = Array.from(wordList).every((li) => li.classList.contains("found"));
-        if (allWordsFound) {
-            triggerConfetti(); // Launch confetti
+        if (foundWords.size === words.length) {
+            triggerConfetti();
+            showWinMessage();
         }
     } else {
         // Deselect invalid selections
@@ -187,6 +180,11 @@ function checkSelection() {
 
     // Clear selectedCells array
     selectedCells = [];
+}
+
+// Show "¡GANASTE!" message
+function showWinMessage() {
+    winMessage.classList.remove("hidden");
 }
 
 // Confetti function
