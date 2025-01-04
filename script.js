@@ -1,7 +1,6 @@
 const words = ["MANDI", "MELI", "FERNI", "MABE", "AHUMI", "CONI", "CARLA", "LONGA", "TITA", "MACA", "FRAN", "GACHE"];
 const gridSize = 10;
 const gridContainer = document.getElementById("grid-container");
-const winMessage = document.getElementById("win-message");
 let grid = [];
 let selectedCells = [];
 let isSelecting = false;
@@ -168,7 +167,6 @@ function checkSelection() {
         // Check if all words are found
         if (foundWords.size === words.length) {
             triggerConfetti();
-            showWinMessage();
         }
     } else {
         // Deselect invalid selections
@@ -180,11 +178,6 @@ function checkSelection() {
 
     // Clear selectedCells array
     selectedCells = [];
-}
-
-// Show "¡GANASTE!" message
-function showWinMessage() {
-    winMessage.classList.remove("hidden");
 }
 
 // Confetti function
